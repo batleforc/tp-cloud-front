@@ -2,6 +2,7 @@ import React, { useEffect, useContext, useState } from "react";
 import "./App.css";
 import { ApiContext } from ".";
 import { ModelTask } from "./helper/api";
+import TodoItem from "./component/TodoItem";
 
 function App() {
   const [taches, setTaches] = useState<ModelTask[]>();
@@ -21,12 +22,7 @@ function App() {
       <p>Heroku TodoList</p>
       <div className="TodoContainer">
         {taches?.map((val) => (
-          <div key={val.id} className="TodoItem">
-            <p>
-              &gt; {val.label}
-              <input type="checkbox" checked={val.status} />
-            </p>
-          </div>
+          <TodoItem item={val} key={val.id} />
         ))}
       </div>
     </div>
