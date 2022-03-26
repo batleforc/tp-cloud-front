@@ -18,9 +18,17 @@ function App() {
   }, []);
   return (
     <div className="App">
-      {taches?.map((val) => (
-        <p key={val.id}>{val.label}</p>
-      ))}
+      <p>Heroku TodoList</p>
+      <div className="TodoContainer">
+        {taches?.map((val) => (
+          <div key={val.id} className="TodoItem">
+            <p>
+              &gt; {val.label}
+              <input type="checkbox" checked={val.status} />
+            </p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
