@@ -10,12 +10,14 @@
  */
 
 export interface ModelTask {
+  DeadLine?: string;
   id?: string;
   label?: string;
   status?: boolean;
 }
 
 export interface RoutesAddTaskBody {
+  deadline?: string;
   label?: string;
 }
 
@@ -23,21 +25,19 @@ export interface RoutesChangeStatusTaskBody {
   status?: boolean;
 }
 
+export interface RoutesEditDeadLineTaskBody {
+  deadline?: string;
+}
+
 export interface RoutesEditTitleTaskBody {
   label?: string;
 }
 
-import axios, {
-  AxiosInstance,
-  AxiosRequestConfig,
-  AxiosResponse,
-  ResponseType,
-} from "axios";
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, ResponseType } from "axios";
 
 export type QueryParamsType = Record<string | number, any>;
 
-export interface FullRequestParams
-  extends Omit<AxiosRequestConfig, "data" | "params" | "url" | "responseType"> {
+export interface FullRequestParams extends Omit<AxiosRequestConfig, "data" | "params" | "url" | "responseType"> {
   /** set parameter to `true` for call `securityWorker` for this request */
   secure?: boolean;
   /** request path */
@@ -52,15 +52,11 @@ export interface FullRequestParams
   body?: unknown;
 }
 
-export type RequestParams = Omit<
-  FullRequestParams,
-  "body" | "method" | "query" | "path"
->;
+export type RequestParams = Omit<FullRequestParams, "body" | "method" | "query" | "path">;
 
-export interface ApiConfig<SecurityDataType = unknown>
-  extends Omit<AxiosRequestConfig, "data" | "cancelToken"> {
+export interface ApiConfig<SecurityDataType = unknown> extends Omit<AxiosRequestConfig, "data" | "cancelToken"> {
   securityWorker?: (
-    securityData: SecurityDataType | null
+    securityData: SecurityDataType | null,
   ) => Promise<AxiosRequestConfig | void> | AxiosRequestConfig | void;
   secure?: boolean;
   format?: ResponseType;
@@ -79,16 +75,8 @@ export class HttpClient<SecurityDataType = unknown> {
   private secure?: boolean;
   private format?: ResponseType;
 
-  constructor({
-    securityWorker,
-    secure,
-    format,
-    ...axiosConfig
-  }: ApiConfig<SecurityDataType> = {}) {
-    this.instance = axios.create({
-      ...axiosConfig,
-      baseURL: axiosConfig.baseURL || "/api",
-    });
+  constructor({ securityWorker, secure, format, ...axiosConfig }: ApiConfig<SecurityDataType> = {}) {
+    this.instance = axios.create({ ...axiosConfig, baseURL: axiosConfig.baseURL || "/api" });
     this.secure = secure;
     this.format = format;
     this.securityWorker = securityWorker;
@@ -98,10 +86,7 @@ export class HttpClient<SecurityDataType = unknown> {
     this.securityData = data;
   };
 
-  private mergeRequestParams(
-    params1: AxiosRequestConfig,
-    params2?: AxiosRequestConfig
-  ): AxiosRequestConfig {
+  private mergeRequestParams(params1: AxiosRequestConfig, params2?: AxiosRequestConfig): AxiosRequestConfig {
     return {
       ...this.instance.defaults,
       ...params1,
@@ -123,7 +108,7 @@ export class HttpClient<SecurityDataType = unknown> {
           ? property
           : typeof property === "object" && property !== null
           ? JSON.stringify(property)
-          : `${property}`
+          : `${property}`,
       );
       return formData;
     }, new FormData());
@@ -146,12 +131,7 @@ export class HttpClient<SecurityDataType = unknown> {
     const requestParams = this.mergeRequestParams(params, secureParams);
     const responseFormat = (format && this.format) || void 0;
 
-    if (
-      type === ContentType.FormData &&
-      body &&
-      body !== null &&
-      typeof body === "object"
-    ) {
+    if (type === ContentType.FormData && body && body !== null && typeof body === "object") {
       requestParams.headers.common = { Accept: "*/*" };
       requestParams.headers.post = {};
       requestParams.headers.put = {};
@@ -162,9 +142,7 @@ export class HttpClient<SecurityDataType = unknown> {
     return this.instance.request({
       ...requestParams,
       headers: {
-        ...(type && type !== ContentType.FormData
-          ? { "Content-Type": type }
-          : {}),
+        ...(type && type !== ContentType.FormData ? { "Content-Type": type } : {}),
         ...(requestParams.headers || {}),
       },
       params: query,
@@ -183,9 +161,7 @@ export class HttpClient<SecurityDataType = unknown> {
  *
  * Api TODO List du cours de virtualisation
  */
-export class Api<
-  SecurityDataType extends unknown
-> extends HttpClient<SecurityDataType> {
+export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
   tache = {
     /**
      * @description get all todotask in mongodb
@@ -238,11 +214,7 @@ export class Api<
      * @summary Edit todoTask Label
      * @request PUT:/tache/{id}
      */
-    tacheUpdate: (
-      id: string,
-      Label: RoutesEditTitleTaskBody,
-      params: RequestParams = {}
-    ) =>
+    tacheUpdate: (id: string, Label: RoutesEditTitleTaskBody, params: RequestParams = {}) =>
       this.request<ModelTask, any>({
         path: `/tache/${id}`,
         method: "PUT",
@@ -272,13 +244,25 @@ export class Api<
      * @summary Edit todoTask Status
      * @request PUT:/tache/{id}/change-statut
      */
-    changeStatutUpdate: (
-      id: string,
-      Label: RoutesChangeStatusTaskBody,
-      params: RequestParams = {}
-    ) =>
+    changeStatutUpdate: (id: string, Label: RoutesChangeStatusTaskBody, params: RequestParams = {}) =>
       this.request<ModelTask, any>({
         path: `/tache/${id}/change-statut`,
+        method: "PUT",
+        body: Label,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name DeadlineUpdate
+     * @summary Edit todoTask DeadLine
+     * @request PUT:/tache/{id}/deadline
+     */
+    deadlineUpdate: (id: string, Label: RoutesEditDeadLineTaskBody, params: RequestParams = {}) =>
+      this.request<ModelTask, any>({
+        path: `/tache/${id}/deadline`,
         method: "PUT",
         body: Label,
         type: ContentType.Json,

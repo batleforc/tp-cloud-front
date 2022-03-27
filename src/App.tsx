@@ -7,7 +7,7 @@ import TodoItem from "./component/TodoItem";
 function App() {
   const [taches, setTaches] = useState<ModelTask[]>();
   const api = useContext(ApiContext);
-  useEffect(() => {
+  const renewData = () => {
     api.tache
       .tacheList()
       .then((req) => req.data)
@@ -15,6 +15,9 @@ function App() {
         setTaches(val);
         console.log(val);
       });
+  };
+  useEffect(() => {
+    renewData();
     // eslint-disable-next-line
   }, []);
   return (
@@ -22,7 +25,7 @@ function App() {
       <p>Heroku TodoList</p>
       <div className="TodoContainer">
         {taches?.map((val) => (
-          <TodoItem item={val} key={val.id} />
+          <TodoItem item={val} key={val.id} refresh={renewData} />
         ))}
       </div>
     </div>

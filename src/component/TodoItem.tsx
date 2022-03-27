@@ -1,13 +1,33 @@
-import React from "react";
-import { ModelTask } from "../helper/api";
+import React, { useContext } from "react";
+import { ApiContext } from "..";
+import { ModelTask, RoutesChangeStatusTaskBody } from "../helper/api";
 
-const TodoItem = ({ item: { id, label, status } }: { item: ModelTask }) => {
+const TodoItem = ({
+  item: { id, label, status, DeadLine },
+  refresh,
+}: {
+  item: ModelTask;
+  refresh: () => void;
+}) => {
+  const api = useContext(ApiContext);
   return (
     <div className="TodoItem">
-      <p>
+      <div>
         &gt; {label}
-        <input type="checkbox" checked={status} />
-      </p>
+        <input
+          type="checkbox"
+          checked={status}
+          onChange={(e) => {
+            if (id !== undefined)
+              api.tache
+                .changeStatutUpdate(id, {
+                  status: !status,
+                } as RoutesChangeStatusTaskBody)
+                .then(() => refresh());
+          }}
+        />
+        <p>{DeadLine}</p>
+      </div>
     </div>
   );
 };
