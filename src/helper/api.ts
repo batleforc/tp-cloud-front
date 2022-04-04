@@ -9,11 +9,31 @@
  * ---------------------------------------------------------------
  */
 
+export interface ModelAction {
+  action?: string;
+  icon?: string;
+  title?: string;
+}
+
+export interface ModelNotification {
+  actions?: ModelAction[];
+  body?: string;
+  icon?: string;
+  image?: string;
+  tag?: string;
+  title?: string;
+  vibrate?: number[];
+}
+
 export interface ModelTask {
   DeadLine?: string;
   id?: string;
   label?: string;
   status?: boolean;
+}
+
+export interface RoutesAddNotifBody {
+  subscription?: WebpushSubscription;
 }
 
 export interface RoutesAddTaskBody {
@@ -31,6 +51,20 @@ export interface RoutesEditDeadLineTaskBody {
 
 export interface RoutesEditTitleTaskBody {
   label?: string;
+}
+
+export interface RoutesSendNotifBody {
+  notif?: ModelNotification;
+}
+
+export interface WebpushKeys {
+  auth?: string;
+  p256dh?: string;
+}
+
+export interface WebpushSubscription {
+  endpoint?: string;
+  keys?: WebpushKeys;
 }
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, ResponseType } from "axios";
@@ -162,6 +196,39 @@ export class HttpClient<SecurityDataType = unknown> {
  * Api TODO List du cours de virtualisation
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
+  notif = {
+    /**
+     * @description Add notification to the array of notification
+     *
+     * @name NotifCreate
+     * @summary Add notification to the array of notification
+     * @request POST:/notif
+     */
+    notifCreate: (Notification: RoutesAddNotifBody, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/notif`,
+        method: "POST",
+        body: Notification,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Send notification to the array of notification
+     *
+     * @name SendCreate
+     * @summary Send notification to the array of notification
+     * @request POST:/notif/send
+     */
+    sendCreate: (Sub: RoutesSendNotifBody, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/notif/send`,
+        method: "POST",
+        body: Sub,
+        type: ContentType.Json,
+        ...params,
+      }),
+  };
   tache = {
     /**
      * @description get all todotask in mongodb
@@ -260,11 +327,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Edit todoTask DeadLine
      * @request PUT:/tache/{id}/deadline
      */
-    deadlineUpdate: (id: string, Label: RoutesEditDeadLineTaskBody, params: RequestParams = {}) =>
+    deadlineUpdate: (id: string, DeadLine: RoutesEditDeadLineTaskBody, params: RequestParams = {}) =>
       this.request<ModelTask, any>({
         path: `/tache/${id}/deadline`,
         method: "PUT",
-        body: Label,
+        body: DeadLine,
         type: ContentType.Json,
         ...params,
       }),
